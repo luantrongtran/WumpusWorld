@@ -209,7 +209,7 @@ class Robot():
         
 #---------------------------------------------------------------------------------------------------
     ## This method is to check whether a room at (column,row) has stench.
-    ## (column,row) must be a room which has been visied by the robot.
+    ## (column,row) must be a room which has been visited by the robot.
     def has_stench(self, column, row):
         # only allow to check positions in visited set or the current position
         if ((column,row) in self.visited_rooms) or (column==self.current_position[0] and row == self.current_position[1]):
