@@ -88,7 +88,8 @@ def PitWumpus_probability_distribution(self, width, height):
             else:
                 prob = prob * p_true
         Pr_N_rooms[each_event] = prob
-    print Pr_N_rooms.show_approx()
+    #print Pr_N_rooms.show_approx()
+    return Pr_N_rooms
 #---------------------------------------------------------------------------------------------------
     #
     #  For the function next_room_prob() below, the parameters, column and row, are the robot's
@@ -110,27 +111,48 @@ def next_room_prob(self, column, row):
     #       safe room. If there is a safe room, return the location (column,row) of the safe room.
     pre_room = (0,0)
     # Get surrounding rooms of the position (column,row), which are potential rooms to explore
+
+    #Checking surrounding rooms to see if there is any 100% safe room, if yes return the room.
+    new_safe_room = None
+
     surroundings = self.cave.getsurrounding(column, row)
     for each_s in surroundings:
         if each_s not in self.visited_rooms:
             if self.check_safety(each_s[0],each_s[1]): ## method check_safety() does a propositional-logic resolution reasoning to
                                                         ## determine whether moving to position each_s is safe or not
-                new_room = each_s ## if it is safe, return this room, otherwise return (0,0)
-                return new_room
+                new_safe_room = each_s ## if it is safe, return this room, otherwise return (0,0)
+                self.safe_but_not_visited_rooms.add(new_safe_room)
+
+    if new_safe_room is not None:
+        #remove the new_safe_room from safe_but_not_visited_rooms because by returning the new_safe_room, the robot
+        #is visiting the room in the next move.
+        self.safe_but_not_visited_rooms.remove(new_safe_room)
+        return new_safe_room
+
+    print self.safe_but_not_visited_rooms
+
+    if len(self.safe_but_not_visited_rooms) > 0:
+        "There is still safe room to visit"
+        return pre_room
 
     #    2. If there is no safe room, this function needs to choose a room whose probability of containing
     #       a pit/wumpus is lower than a pre-specified probability threshold, then return the location of
     #       that room.
 
-    min_prob_room = self.max_pit_probability
-    row = 0
-    col = 1
+    # Reaching this code line mean, there is no (100%) safe room for the robot, and it needs to determine the next
+    # room using probability for each rooms in the query
+    print "No rooms safe, Need to determine lowest risk room"
+    if self.gold_collected: print "Gold collected"
 
-    for each_s in surroundings:
-        print " "
-        if min_prob_room > enumerate_joint_ask(each_s, {}, PitWumpus_probability_distribution()):
-            min_prob_room = enumerate_joint_ask(each_s, {}, PitWumpus_probability_distribution())
-            new_room = (each_s[0],each_s[1])
+    # min_prob_room = self.max_pit_probability
+    # row = 0
+    # col = 1
+    #
+    # for each_s in surroundings:
+    #     print " "
+    #     if min_prob_room > enumerate_joint_ask(each_s, {}, PitWumpus_probability_distribution()):
+    #         min_prob_room = enumerate_joint_ask(each_s, {}, PitWumpus_probability_distribution())
+    #         new_room = (each_s[0],each_s[1])
 
     #    3. If the probabilities of all the available rooms are not lower than the pre-specified probability
     #       threshold, return (0,0).

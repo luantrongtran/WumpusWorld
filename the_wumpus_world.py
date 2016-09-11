@@ -95,7 +95,7 @@ class Robot():
 
     # This is the constructor to create an object of Robot
     def __init__(self,cave):
-        self.cave = cave # The cave environment, it is an object of Cave, the cave object that the robot is in  
+        self.cave = cave # The cave environment, it is an object of Cave, the cave object that the robot is in
         self.kb = PropKB() # The robot's knowledge base which is an object of PropKB, it is used by the logic based agent.
         self.visited_rooms = set() # A set of room locations which have been visited by the robot so far.
                                    # Each location is a pair of column and row, e.g., visited_rooms = {(1,3), (1,2), (2,3)}
@@ -119,6 +119,12 @@ class Robot():
         # Build the joint probability distribution of pits/wumpus configurations in the given cave environment.
         # The function PitWumpus_probability_distribution()is defined in probability_based_move.py
         self.PitWumpus_probability_distribution(self.cave.WIDTH, self.cave.HEIGHT)
+
+        #student's code
+
+        #Contains all the safe rooms but have not been visited. This is for the robot to determine that only choose
+        # the rooms basing on the probability if there is no safe room to visit.
+        self.safe_but_not_visited_rooms = set()
                 
 #---------------------------------------------------------------------------------------------------
 
