@@ -310,8 +310,8 @@ class Robot():
 
     ## This method is used by the logic based agent to update its knowledge base
     def kb_add(self,x,y):
-        ''' Update the knowledge base by adding a new propositional expresstion
-            into the konwledge base
+        ''' Update the knowledge base by adding a new propositional expression
+            into the knowledge base
             First, form the expression which is related to the location (x,y), x is column, y is row.
             then, add it into the knowledge base kb by using method tell() of PropKB'''
 

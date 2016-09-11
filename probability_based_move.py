@@ -121,16 +121,14 @@ def next_room_prob(self, column, row):
     #    2. If there is no safe room, this function needs to choose a room whose probability of containing
     #       a pit/wumpus is lower than a pre-specified probability threshold, then return the location of
     #       that room.
-
-    min_prob_room = self.max_pit_probability
-    row = 0
-    col = 1
-
-    for each_s in surroundings:
-        print " "
-        if min_prob_room > enumerate_joint_ask(each_s, {}, PitWumpus_probability_distribution()):
-            min_prob_room = enumerate_joint_ask(each_s, {}, PitWumpus_probability_distribution())
-            new_room = (each_s[0],each_s[1])
+    # min_prob_room = self.max_pit_probability
+    # row = 0
+    # col = 1
+    #
+    # for each_s in surroundings:
+    #     if min_prob_room > enumerate_joint_ask(each_s, {}, PitWumpus_probability_distribution()):
+    #         min_prob_room = enumerate_joint_ask(each_s, {}, PitWumpus_probability_distribution())
+    #         new_room = (each_s[0],each_s[1])
 
     #    3. If the probabilities of all the available rooms are not lower than the pre-specified probability
     #       threshold, return (0,0).
