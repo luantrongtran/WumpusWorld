@@ -112,7 +112,6 @@ def next_room_prob(self, column, row):
     # Get surrounding rooms of the position (column,row), which are potential rooms to explore
     surroundings = self.cave.getsurrounding(column, row)
     for each_s in surroundings:
-        print " "
         if each_s not in self.visited_rooms:
             if self.check_safety(each_s[0],each_s[1]): ## method check_safety() does a propositional-logic resolution reasoning to
                                                         ## determine whether moving to position each_s is safe or not
@@ -123,14 +122,15 @@ def next_room_prob(self, column, row):
     #       a pit/wumpus is lower than a pre-specified probability threshold, then return the location of
     #       that room.
 
-    # min_prob_room = self.max_pit_probability
-    # row = 0
-    # col = 1
-    #
-    # for each_s in surroundings:
-    #     if min_prob_room > enumerate_joint_ask(each_s, {}, PitWumpus_probability_distribution()):
-    #         min_prob_room = enumerate_joint_ask(each_s, {}, PitWumpus_probability_distribution())
-    #         new_room = (each_s[0],each_s[1])
+    min_prob_room = self.max_pit_probability
+    row = 0
+    col = 1
+
+    for each_s in surroundings:
+        print " "
+        if min_prob_room > enumerate_joint_ask(each_s, {}, PitWumpus_probability_distribution()):
+            min_prob_room = enumerate_joint_ask(each_s, {}, PitWumpus_probability_distribution())
+            new_room = (each_s[0],each_s[1])
 
     #    3. If the probabilities of all the available rooms are not lower than the pre-specified probability
     #       threshold, return (0,0).
