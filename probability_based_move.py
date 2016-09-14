@@ -4,9 +4,9 @@
 #
 #-----Statement of Authorship----------------------------------------#
 #
-#  By submitting this code I agree that it represents my own work. 
-#  I am aware of the University rule that a student must not act in 
-#  a manner which constitutes academic dishonesty as stated and 
+#  By submitting this code I agree that it represents my own work.
+#  I am aware of the University rule that a student must not act in
+#  a manner which constitutes academic dishonesty as stated and
 #  explained in QUT's Manual of Policies and Procedures, Section C/5.3
 #  "Academic Integrity" and Section E/2.1 "Student Code of Conduct".
 #
@@ -21,14 +21,14 @@ from IFN680_AIMA.utils import *
 from IFN680_AIMA.probability import *
 import tkMessageBox,time
 
-#__________________________________________________________________________________________________________________________    
-#___________________________________________________________________________________________________________________________    
+#__________________________________________________________________________________________________________________________
+#___________________________________________________________________________________________________________________________
 #---------------------------------------------------------------------------------------------------------------------------
     #
     #  The following two functions are to be developed by you. They are functions in class Robot. If you need,
     #  you can add more functions in this file. In this case, you need to link these functions at the beginning
     #  of class Robot in the main program file the_wumpus_world.py.
-    # 
+    #
 #---------------------------------------------------------------------------------------------------
     #
     # For this assignment, we treat a pit and the wumpus equally. Therefore, each room has two states. One state is 'empty',
@@ -51,7 +51,7 @@ import tkMessageBox,time
     # joint probability distribution object. Your function next_room_prob() will need to use the joint probability distribution
     # to calculate the required conditional probabilities.
     #
-    
+
 def PitWumpus_probability_distribution(self, width, height):
     #set probability == 0 for inconsistent events
     #testing probability threshold (default == 0)
@@ -121,18 +121,28 @@ def next_room_prob(self, column, row):
     #    2. If there is no safe room, this function needs to choose a room whose probability of containing
     #       a pit/wumpus is lower than a pre-specified probability threshold, then return the location of
     #       that room.
-    # min_prob_room = self.max_pit_probability
+
+    min_prob_room = self.max_pit_probability
     # row = 0
     # col = 1
-    #
-    # for each_s in surroundings:
-    #     if min_prob_room > enumerate_joint_ask(each_s, {}, PitWumpus_probability_distribution()):
-    #         min_prob_room = enumerate_joint_ask(each_s, {}, PitWumpus_probability_distribution())
-    #         new_room = (each_s[0],each_s[1])
 
-    #    3. If the probabilities of all the available rooms are not lower than the pre-specified probability
-    #       threshold, return (0,0).
+    # locations = self.robot.observation_breeze_stench(column, row)
+    # for each_r in locations:
+    #     if each_r in self.robot.consistent(known_BS= 1):
+    #         room_query = each_r
+    #         return room_query
+    # print room_query
+
+    # next_room_query = enumerate_joint_ask(each_s, {self.robot.consistent, self.pitwumpus_variables}, self.PitWumpus_probability_distribution)
+    #
+    # for each_q in next_room_query:
+    #     if min_prob_room > next_room_query:
+    #         min_prob_room = next_room_query
+    #         next_room_query = (each_q[0],each_q[1])
+    #         return next_room_query
+    #
+    # #    3. If the probabilities of all the available rooms are not lower than the pre-specified probability
+    # #       threshold, return (0,0).
     return pre_room
 
     tkMessageBox.showinfo("Not yet complete", "You need to develop the function next_room_prob.")
-
