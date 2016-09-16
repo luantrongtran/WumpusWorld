@@ -148,10 +148,6 @@ def next_room_prob(self, column, row):
     print "No rooms safe, Need to determine lowest risk room"
 
     knownPW = self.observation_pits(self.visited_rooms) #clone a new array of visited rooms
-    for each_visited_room in self.visited_rooms:
-        # all visited rooms have no pit -> assign False to all visited room
-        knownPW[each_visited_room] = False
-
     #calculate P(P_query, P_unknown, P_knownPW) = P(P_query)*P(P_unknown)*P(P_knownPW) = a * P(P_query, P_unknown)
 
 

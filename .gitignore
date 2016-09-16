@@ -53,6 +53,8 @@ RawBlameHistory     45 lines (34 sloc)  900 Bytes
 # JIRA plugin
 atlassian-ide-plugin.xml
 
+*.pyc
+
 # Crashlytics plugin (for Android Studio and IntelliJ)
 com_crashlytics_export_strings.xml
 crashlytics.properties
