@@ -86,6 +86,7 @@ def PitWumpus_probability_distribution(self, width, height):
 
     # #Assign probability for each event
     for each_event in events:
+        print "event--", each_event
         prob = 1
         for (var, val) in each_event.items():
             if val == F:
@@ -115,6 +116,7 @@ def next_room_prob(self, column, row):
     #    1. Firstly, you may like to call the function check_safety() of class Robot to find a
     #       safe room. If there is a safe room, return the location (column,row) of the safe room.
     pre_room = (0,0)
+    query_rooms = set()
     # Get surrounding rooms of the position (column,row), which are potential rooms to explore
 
     #Checking surrounding rooms to see if there is any 100% safe room, if yes return the room.
@@ -126,20 +128,8 @@ def next_room_prob(self, column, row):
             if self.check_safety(each_s[0],each_s[1]): ## method check_safety() does a propositional-logic resolution reasoning to
                                                         ## determine whether moving to position each_s is safe or not
                 new_safe_room = each_s ## if it is safe, return this room, otherwise return (0,0)
-                self.safe_but_not_visited_rooms.add(new_safe_room)
             else:
-                self.query_rooms.add(each_s)
-
-    if new_safe_room is not None:
-        #remove the new_safe_room from safe_but_not_visited_rooms because by returning the new_safe_room, the robot
-        #is visiting the room in the next move.
-        self.safe_but_not_visited_rooms.remove(new_safe_room)
-        return new_safe_room
-
-
-    if len(self.safe_but_not_visited_rooms) > 0:
-        #There is still safe room to visit
-        return pre_room
+                query_rooms.add(each_s)
 
     #    2. If there is no safe room, this function needs to choose a room whose probability of containing
     #       a pit/wumpus is lower than a pre-specified probability threshold, then return the location of
@@ -148,23 +138,20 @@ def next_room_prob(self, column, row):
     print "No rooms safe, Need to determine lowest risk room"
 
     knownPW = self.observation_pits(self.visited_rooms) #clone a new array of visited rooms
-    #calculate P(P_query, P_unknown, P_knownPW) = P(P_query)*P(P_unknown)*P(P_knownPW) = a * P(P_query, P_unknown)
+    knownBS = self.observation_breeze_
 
+    for each_event in self.PitWumpus_probability_dis
 
     lowest_room = None
     lowest_risk_prob = 1
     for each_query in self.query_rooms:
-        p_true = 0.2
-        p_false = 1 - p_true
-        Pquery_value = [True, False]
-        Pknown_value = [False]
-        Punknown_value = [True, False]
-
-
-
         str_col_row = "({0},{1})".format(each_query[0], each_query[1]) #convert query room into string col,row
         joint_pro_dis_query_unknown_knownPW = enumerate_joint_ask(str_col_row, knownPW, self.PitWumpus_probability_dis)
         print str_col_row, "---", joint_pro_dis_query_unknown_knownPW.show_approx('%.5g')
+
+        if joint_pro_dis_query_unknown_knownPW < lowest_risk_prob or lowest_risk_prob is None:
+            lowest_risk_prob = joint_pro_dis_query_unknown_knownPW
+            lowest_room = str_col_row
 
     # min_prob_room = self.max_pit_probability
     # row = 0
