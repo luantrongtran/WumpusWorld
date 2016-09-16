@@ -5,22 +5,27 @@ from utils import *
 from logic import extend
 from random import choice, seed
 
-#______________________________________________________________________________
+
+# ______________________________________________________________________________
 
 
 def DTAgentProgram(belief_state):
     "A decision-theoretic agent. [Fig. 13.1]"
+
     def program(percept):
         belief_state.observe(program.action, percept)
         program.action = argmax(belief_state.actions(),
                                 belief_state.expected_outcome_utility)
         return program.action
+
     program.action = None
     return program
 
-#______________________________________________________________________________
 
-epsilon = 0.001 ## acceptable error
+# ______________________________________________________________________________
+
+epsilon = 0.001  ## acceptable error
+
 
 class ProbDist:
     """A discrete probability distribution.  You name the random variable
@@ -31,20 +36,23 @@ class ProbDist:
     >>> P['lo'], P['med'], P['hi']
     (0.125, 0.375, 0.5)
     """
+
     def __init__(self, varname='?', freqs=None):
         """If freqs is given, it is a dictionary of value: frequency pairs,
-        and the ProbDist then is normalized."""        
+        and the ProbDist then is normalized."""
         update(self, prob={}, varname=varname, values=[])
 
         if freqs:
             for (v, p) in freqs.items():
-                self[v] = p  
+                self[v] = p
             self.normalize()
 
     def __getitem__(self, val):
         "Given a value, return P(value)."
-        try: return self.prob[val]
-        except KeyError: return 0
+        try:
+            return self.prob[val]
+        except KeyError:
+            return 0
 
     def __setitem__(self, val, p):
         "Set P(val) = p."
@@ -61,11 +69,11 @@ class ProbDist:
         >>> print '%5.3f %5.3f' % (P.prob['H'], P.prob['T'])
         0.350 0.650
         """
-        
+
         total = float(sum(self.prob.values()))
         ##Y.Xu, modified the following sentence because when N is small for the approx methods, the total could be zero
         ##if not (1.0-epsilon < total < 1.0+epsilon):  
-        if not ((1.0-epsilon < total < 1.0+epsilon) or total == 0):
+        if not ((1.0 - epsilon < total < 1.0 + epsilon) or total == 0):
             for val in self.prob:
                 self.prob[val] /= total
         return self
@@ -85,20 +93,22 @@ class ProbDist:
             >>>print P.values
             >>>['hi', 'med']
             '''
-    
+
         if val not in self.values:
             pass
         else:
-            del self.prob[val] 
+            del self.prob[val]
             self.values.remove(val)
-            
+
     def is_valid(self):
         '''If the sum of the values in prob[val] is 1, return true, otherwise false.'''
         sum_prob = float(sum(self.prob.values()))
-        
+
         if 1.0 - epsilon < sum_prob < (1.0 + epsilon):
             return True
-        else: return False
+        else:
+            return False
+
 
 class JointProbDist(ProbDist):
     """A discrete probability distribute over a set of variables.
@@ -108,12 +118,12 @@ class JointProbDist(ProbDist):
     >>> P[dict(X=0, Y=1)] = 0.5
     >>> P[dict(X=0, Y=1)]
     0.5"""
-    
-    #Y. Xu, this is the original constructor
-    #def __init__(self, variables):
+
+    # Y. Xu, this is the original constructor
+    # def __init__(self, variables):
     #    update(self, prob={}, variables=variables, vals=DefaultDict([]))
 
-    #Y. Xu, modified the constructor by adding the third parameter
+    # Y. Xu, modified the constructor by adding the third parameter
     '''The third parameter is a dict, it allows us to specify initial values for each of the variables
     >>> P = JointProbDist(['X', 'Y'], {'X':[1,2,4], 'Y': [True, False]})
     >>> print P.values('X')
@@ -121,6 +131,7 @@ class JointProbDist(ProbDist):
     >>> print P.values('X')
     [True, False]
     '''
+
     def __init__(self, variables, variable_values=DefaultDict([])):
         update(self, prob={}, variables=variables, vals=variable_values)
 
@@ -136,7 +147,7 @@ class JointProbDist(ProbDist):
         values = event_values(values, self.variables)
         self.prob[values] = p
         for var, val in zip(self.variables, values):
-            if val not in self.vals[var]: 
+            if val not in self.vals[var]:
                 self.vals[var].append(val)
 
     def values(self, var):
@@ -146,12 +157,13 @@ class JointProbDist(ProbDist):
     def __repr__(self):
         return "P(%s)" % self.variables
 
-    #Y.Xu added 
+    # Y.Xu added
     def show_approx(self, numfmt='%.3g'):
         """Show the probabilities rounded and sorted by key, for the
         sake of portable doctests."""
         return '\n'.join([('%s: ' + numfmt) % (v, p)
-                          for (v, p) in sorted(self.prob.items())])    
+                          for (v, p) in sorted(self.prob.items())])
+
 
 def event_values(event, vars):
     """Return a tuple of the values of variables vars in event.
@@ -165,8 +177,9 @@ def event_values(event, vars):
     else:
         return tuple([event[var] for var in vars])
 
-#Y.Xu added
-def all_events_jpd(vars, jpd, e): 
+
+# Y.Xu added
+def all_events_jpd(vars, jpd, e):
     """
     e is evidence, it is a dict containing 'variable:value' pairs  
     vars is a list of variables
@@ -181,15 +194,16 @@ def all_events_jpd(vars, jpd, e):
     {'Y': False, 'X': 1, 'Z': 'a'}
     {'Y': False, 'X': 2, 'Z': 'a'}
     """
-    if not vars: ## if vars is empty
+    if not vars:  ## if vars is empty
         yield e
     else:
         X, rest = vars[0], vars[1:]
-        for e1 in all_events_jpd(rest, jpd,e): 
+        for e1 in all_events_jpd(rest, jpd, e):
             for x in jpd.values(X):
-                yield extend(e1, X,x)
-                
-#______________________________________________________________________________
+                yield extend(e1, X, x)
+
+
+# ______________________________________________________________________________
 
 def enumerate_joint_ask(X, e, P):
     """Return a probability distribution over the values of the variable X,
@@ -200,12 +214,13 @@ def enumerate_joint_ask(X, e, P):
     '0: 0.667, 1: 0.167, 2: 0.167'
     """
     assert X not in e, "Query variable must be distinct from evidence"
-    Q = ProbDist(X) # probability distribution for X, initially empty
+    Q = ProbDist(X)  # probability distribution for X, initially empty
 
-    Y = [v for v in P.variables if v != X and v not in e] # hidden vars.
+    Y = [v for v in P.variables if v != X and v not in e]  # hidden vars.
     for xi in P.values(X):
         Q[xi] = enumerate_joint(Y, extend(e, X, xi), P)
     return Q.normalize()
+
 
 def enumerate_joint(vars, e, P):
     """Return the sum of those entries in P consistent with e,
@@ -216,7 +231,8 @@ def enumerate_joint(vars, e, P):
     return sum([enumerate_joint(rest, extend(e, Y, y), P)
                 for y in P.values(Y)])
 
-#______________________________________________________________________________
+
+# ______________________________________________________________________________
 
 class BayesNet:
     "Bayesian network containing only boolean-variable nodes."
@@ -255,17 +271,18 @@ class BayesNet:
         return [True, False]
 
     def __repr__(self):
-        #return 'BayesNet(%r)' % self.nodes
+        # return 'BayesNet(%r)' % self.nodes
         all_nodes = ''
         for each_node in self.nodes:
             all_nodes = all_nodes + each_node.__repr__()
         return all_nodes
 
+
 class BayesNode:
     """A conditional probability distribution for a boolean variable,
     P(X | parents). Part of a BayesNet."""
 
-    def __init__(self, X, parents, cpt): 
+    def __init__(self, X, parents, cpt):
         """X is a variable name, and parents a sequence of variable
         names or a space-separated string.  cpt, the conditional
         probability table, takes one of these forms:
@@ -293,16 +310,16 @@ class BayesNode:
         if isinstance(parents, str): parents = parents.split()
 
         # We store the table always in the third form above.
-        if isinstance(cpt, (float, int)): # no parents, 0-tuple
+        if isinstance(cpt, (float, int)):  # no parents, 0-tuple
             cpt = {(): cpt}
         elif isinstance(cpt, dict):
-            if cpt and isinstance(cpt.keys()[0], bool): # one parent, 1-tuple
+            if cpt and isinstance(cpt.keys()[0], bool):  # one parent, 1-tuple
                 cpt = dict(((v,), p) for v, p in cpt.items())
 
         assert isinstance(cpt, dict)
         for vs, p in cpt.items():
             assert isinstance(vs, tuple) and len(vs) == len(parents)
-            assert every(lambda v: isinstance(v, bool), vs) 
+            assert every(lambda v: isinstance(v, bool), vs)
             assert 0 <= p <= 1
 
         update(self, variable=X, parents=parents, cpt=cpt, children=[])
@@ -316,37 +333,39 @@ class BayesNode:
         >>> bn.p(False, {'Burglary': False, 'Earthquake': True})
         0.375"""
         assert isinstance(value, bool)
-        ptrue = self.cpt[event_values(event, self.parents)] 
-        return if_(value, ptrue, 1 - ptrue) 
+        ptrue = self.cpt[event_values(event, self.parents)]
+        return if_(value, ptrue, 1 - ptrue)
 
     def sample(self, event):
         """Sample from the distribution for this variable conditioned
         on event's values for parent_vars. That is, return True/False
         at random according with the conditional probability given the
         parents."""
-        return probability(self.p(True, event)) 
+        return probability(self.p(True, event))
 
-    def __repr__(self):  
-        #return repr((self.variable, ' '.join(self.parents)))
-        
+    def __repr__(self):
+        # return repr((self.variable, ' '.join(self.parents)))
+
         ##Y. Xu, return the detail of the node, it is a string including all cpt key:value pairs
-        probabilities = '' 
+        probabilities = ''
         for v, p in self.cpt.items():
-            if len(v)==1: ##to remove the comma in (v,)
-                v=(str(v)).replace(',','')
-            else: v = str(v)
-            probabilities = probabilities + v +': '+ str(p) + ', '
-            
-        return_repr = '\nVariable: ' + str(self.variable) + ', Parents: ' + str(self.parents) + '\ncpt:' + probabilities[:-2]
-        return return_repr +'\n'
+            if len(v) == 1:  ##to remove the comma in (v,)
+                v = (str(v)).replace(',', '')
+            else:
+                v = str(v)
+            probabilities = probabilities + v + ': ' + str(p) + ', '
+
+        return_repr = '\nVariable: ' + str(self.variable) + ', Parents: ' + str(
+            self.parents) + '\ncpt:' + probabilities[:-2]
+        return return_repr + '\n'
 
     def node_spec(self):
         ##Y. Xu, return a concise representation of the node which is a tuple of three elements: self.variable, self.parents, self.cpt
         spec = (self.variable, self.parents, self.cpt)
-        return spec        
-        
+        return spec
 
-# Burglary example [Fig. 14.2]
+        # Burglary example [Fig. 14.2]
+
 
 T, F = True, False
 
@@ -354,12 +373,13 @@ burglary = BayesNet([
     ('Burglary', '', 0.001),
     ('Earthquake', '', 0.002),
     ('Alarm', 'Burglary Earthquake',
-         {(T, T): 0.95, (T, F): 0.94, (F, T): 0.29, (F, F): 0.001}),
+     {(T, T): 0.95, (T, F): 0.94, (F, T): 0.29, (F, F): 0.001}),
     ('JohnCalls', 'Alarm', {T: 0.90, F: 0.05}),
     ('MaryCalls', 'Alarm', {T: 0.70, F: 0.01})
-    ])
+])
 
-#______________________________________________________________________________
+
+# ______________________________________________________________________________
 
 def enumeration_ask(X, e, bn):
     """Return the conditional probability distribution of variable X
@@ -372,6 +392,7 @@ def enumeration_ask(X, e, bn):
     for xi in bn.variable_values(X):
         Q[xi] = enumerate_all(bn.vars, extend(e, X, xi), bn)
     return Q.normalize()
+
 
 def enumerate_all(vars, e, bn):
     """Return the sum of those entries in P(vars | e{others})
@@ -388,7 +409,8 @@ def enumerate_all(vars, e, bn):
         return sum(Ynode.p(y, e) * enumerate_all(rest, extend(e, Y, y), bn)
                    for y in bn.variable_values(Y))
 
-#______________________________________________________________________________
+
+# ______________________________________________________________________________
 
 def elimination_ask(X, e, bn):
     """Compute bn's P(X|e) by variable elimination. [Fig. 14.11]
@@ -403,9 +425,11 @@ def elimination_ask(X, e, bn):
             factors = sum_out(var, factors, bn)
     return pointwise_product(factors, bn).normalize()
 
+
 def is_hidden(var, X, e):
     "Is var a hidden variable when querying P(X|e)?"
     return var != X and var not in e
+
 
 def make_factor(var, e, bn):
     """Return the factor for var in bn's joint distribution given e.
@@ -417,8 +441,10 @@ def make_factor(var, e, bn):
                for e1 in all_events(vars, bn, e))
     return Factor(vars, cpt)
 
+
 def pointwise_product(factors, bn):
     return reduce(lambda f, g: f.pointwise_product(g, bn), factors)
+
 
 def sum_out(var, factors, bn):
     "Eliminate var from all factors by summing over its values."
@@ -427,6 +453,7 @@ def sum_out(var, factors, bn):
         (var_factors if var in f.vars else result).append(f)
     result.append(pointwise_product(var_factors, bn).sum_out(var, bn))
     return result
+
 
 class Factor:
     "A factor in a joint distribution."
@@ -460,6 +487,7 @@ class Factor:
         "Look up my value tabulated for e."
         return self.cpt[event_values(e, self.vars)]
 
+
 def all_events(vars, bn, e):
     "Yield every way of extending e with values for all vars."
     if not vars:
@@ -470,7 +498,8 @@ def all_events(vars, bn, e):
             for x in bn.variable_values(X):
                 yield extend(e1, X, x)
 
-#______________________________________________________________________________
+
+# ______________________________________________________________________________
 
 # Fig. 14.12a: sprinkler network
 
@@ -479,9 +508,10 @@ sprinkler = BayesNet([
     ('Sprinkler', 'Cloudy', {T: 0.10, F: 0.50}),
     ('Rain', 'Cloudy', {T: 0.80, F: 0.20}),
     ('WetGrass', 'Sprinkler Rain',
-         {(T, T): 0.99, (T, F): 0.90, (F, T): 0.90, (F, F): 0.00})])
+     {(T, T): 0.99, (T, F): 0.90, (F, T): 0.90, (F, F): 0.00})])
 
-#______________________________________________________________________________
+
+# ______________________________________________________________________________
 
 def prior_sample(bn):
     """Randomly sample from bn's full joint distribution. The result
@@ -491,7 +521,8 @@ def prior_sample(bn):
         event[node.variable] = node.sample(event)
     return event
 
-#_______________________________________________________________________________
+
+# _______________________________________________________________________________
 
 def rejection_sampling(X, e, bn, N):
     """Estimate the probability distribution of variable X given
@@ -503,19 +534,21 @@ def rejection_sampling(X, e, bn, N):
     ...   burglary, 10000).show_approx()
     'False: 0.7, True: 0.3'
     """
-    counts = dict((x, 0) for x in bn.variable_values(X)) # bold N in Fig. 14.14
+    counts = dict((x, 0) for x in bn.variable_values(X))  # bold N in Fig. 14.14
     for j in xrange(N):
-        sample = prior_sample(bn) # boldface x in Fig. 14.14
+        sample = prior_sample(bn)  # boldface x in Fig. 14.14
         if consistent_with(sample, e):
             counts[sample[X]] += 1
     return ProbDist(X, counts)
+
 
 def consistent_with(event, evidence):
     "Is event consistent with the given evidence?"
     return every(lambda (k, v): evidence.get(k, v) == v,
                  event.items())
 
-#_______________________________________________________________________________
+
+# _______________________________________________________________________________
 
 def likelihood_weighting(X, e, bn, N):
     """Estimate the probability distribution of variable X given
@@ -527,16 +560,17 @@ def likelihood_weighting(X, e, bn, N):
     """
     W = dict((x, 0) for x in bn.variable_values(X))
     for j in xrange(N):
-        sample, weight = weighted_sample(bn, e) # boldface x, w in Fig. 14.15
+        sample, weight = weighted_sample(bn, e)  # boldface x, w in Fig. 14.15
         W[sample[X]] += weight
     return ProbDist(X, W)
+
 
 def weighted_sample(bn, e):
     """Sample an event from bn that's consistent with the evidence e;
     return the event and its weight, the likelihood that the event
     accords to the evidence."""
     w = 1
-    event = dict(e) # boldface x in Fig. 14.15
+    event = dict(e)  # boldface x in Fig. 14.15
     for node in bn.nodes:
         Xi = node.variable
         if Xi in e:
@@ -545,9 +579,8 @@ def weighted_sample(bn, e):
             event[Xi] = node.sample(event)
     return event, w
 
- 
 
-#_______________________________________________________________________________
+# _______________________________________________________________________________
 __doc__ += """
 # We can build up a probability distribution like this (p. 469):
 >>> P = ProbDist()

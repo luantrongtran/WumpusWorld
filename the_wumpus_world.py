@@ -118,13 +118,16 @@ class Robot():
 
         # Build the joint probability distribution of pits/wumpus configurations in the given cave environment.
         # The function PitWumpus_probability_distribution()is defined in probability_based_move.py
-        self.PitWumpus_probability_distribution(self.cave.WIDTH, self.cave.HEIGHT)
+        self.PitWumpus_probability_dis = self.PitWumpus_probability_distribution(self.cave.WIDTH, self.cave.HEIGHT)
 
         #student's code
 
         #Contains all the safe rooms but have not been visited. This is for the robot to determine that only choose
         # the rooms basing on the probability if there is no safe room to visit.
         self.safe_but_not_visited_rooms = set()
+
+        #Contains all the rooms that are potential for pits/wumpus
+        self.query_rooms = set()
                 
 #---------------------------------------------------------------------------------------------------
 
