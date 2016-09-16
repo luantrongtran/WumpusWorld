@@ -76,7 +76,7 @@ def PitWumpus_probability_distribution(self, width, height):
     room_values = {}
     for each in pitwumpus_variables:
         room_values[each] = [T,F]
-        print each, room_values[each],'\n'
+        # print each, room_values[each],'\n'
 
     #Create an object of JointProDist
     Pr_N_rooms = JointProbDist(pitwumpus_variables, room_values)
@@ -86,7 +86,7 @@ def PitWumpus_probability_distribution(self, width, height):
 
     # #Assign probability for each event
     for each_event in events:
-        print "event--", each_event
+        print each_event
         prob = 1
         for (var, val) in each_event.items():
             if val == F:
@@ -94,7 +94,15 @@ def PitWumpus_probability_distribution(self, width, height):
             else:
                 prob = prob * p_true
         Pr_N_rooms[each_event] = prob
-    print Pr_N_rooms.show_approx()
+
+    for k,v in Pr_N_rooms.prob.items():
+        print k, "--", v
+
+    print Pr_N_rooms[(False, False, False, False, True, True, True, True, True)]
+    # print Pr_N_rooms[0]
+    # print Pr_N_rooms.show_approx()
+
+
     return Pr_N_rooms
 #---------------------------------------------------------------------------------------------------
     #
@@ -138,20 +146,15 @@ def next_room_prob(self, column, row):
     print "No rooms safe, Need to determine lowest risk room"
 
     knownPW = self.observation_pits(self.visited_rooms) #clone a new array of visited rooms
-    knownBS = self.observation_breeze_
+    knownBS = self.observation_breeze_stench(self.visited_rooms)
 
-    for each_event in self.PitWumpus_probability_dis
+    for event, prob in self.Pr_N_rooms.prob.iteritems():
+        print event,"--",prob
+        if (event.viewitems() >= knownPW) == FALSE:
+            print "False"
+        else:
+            print "True"
 
-    lowest_room = None
-    lowest_risk_prob = 1
-    for each_query in self.query_rooms:
-        str_col_row = "({0},{1})".format(each_query[0], each_query[1]) #convert query room into string col,row
-        joint_pro_dis_query_unknown_knownPW = enumerate_joint_ask(str_col_row, knownPW, self.PitWumpus_probability_dis)
-        print str_col_row, "---", joint_pro_dis_query_unknown_knownPW.show_approx('%.5g')
-
-        if joint_pro_dis_query_unknown_knownPW < lowest_risk_prob or lowest_risk_prob is None:
-            lowest_risk_prob = joint_pro_dis_query_unknown_knownPW
-            lowest_room = str_col_row
 
     # min_prob_room = self.max_pit_probability
     # row = 0
