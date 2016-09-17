@@ -148,32 +148,51 @@ def next_room_prob(self, column, row):
     knownPW = self.observation_pits(self.visited_rooms)
     knownBS = self.observation_breeze_stench(self.visited_rooms)
 
-    lowest_prob = 1
+    lowest_prob = (1,0)
     lowest_risk_room = None
     for each_query_room in query_rooms:
-        query_prob = 0
+        query_prob = (0,0) #(T,F)
         all_possible_events = all_events_jpd(self.Pr_N_rooms.variables, self.Pr_N_rooms, {})
+
+        false_events_sum = 0
+        true_event_sum = 0
         for each_event in all_possible_events:
             filter = each_event.viewitems() >= knownPW.viewitems()
-            filter &= each_event["({0},{1})".format(each_query_room[0], each_query_room[1])] == False
+            # filter &= each_event["({0},{1})".format(each_query_room[0], each_query_room[1])] == False
             if filter == False:
                 continue
 
             consisten_event = set(query_rooms)
             consisten_event_value = {}
             for each_fringe in consisten_event:
-                consisten_event_value["({0},{1})".format(each_fringe[0], each_fringe[1])] = each_event["({0},{1})".format(each_fringe[0], each_fringe[1])]
+                consisten_event_value["({0},{1})".format(each_fringe[0], each_fringe[1])] = each_event["({0},{1})".
+                    format(each_fringe[0], each_fringe[1])]
             isConsistent = self.consistent(knownBS, consisten_event_value)
             # if isConsistent == 1:
             #     print "consisten = 1"
             temp = self.Pr_N_rooms[each_event] * isConsistent
-            query_prob += temp
 
-        query_prob = 1 - query_prob #calculate the probability of pit/wumpus
+            if each_event["({0},{1})".format(each_query_room[0], each_query_room[1])] == True:
+                true_event_sum += temp
+            else:
+                false_events_sum += temp
+
+        query_prob = (true_event_sum, false_events_sum)
+
+        # query_prob = 1 - query_prob #calculate the probability of pit/wumpus
+        print "current room: ", each_query_room[0], each_query_room
+        print "before normalization: ", query_prob[0], ", ", query_prob[1]
+
+        normalization_number = 1 / (query_prob[0] + query_prob[1])
+        normalized_true_event_prob = normalization_number * query_prob[0]
+        normalized_false_event_prob = normalization_number * query_prob[1]
+        query_prob = (normalized_true_event_prob, normalized_false_event_prob)
+
         print each_query_room, "--", query_prob
-        if query_prob <= lowest_prob:
+        if query_prob[0] <= lowest_prob[0]:
             lowest_prob = query_prob
             lowest_risk_room = each_query_room
+
     print "Lowest prob room info: ", lowest_risk_room, "--", lowest_prob
     # min_prob_room = self.max_pit_probability
     # row = 0
@@ -187,7 +206,7 @@ def next_room_prob(self, column, row):
 
     #    3. If the probabilities of all the available rooms are not lower than the pre-specified probability
     #       threshold, return (0,0).
-    if lowest_prob == 1:
+    if lowest_prob[0] == 1:
         return pre_room
     return lowest_risk_room
 
