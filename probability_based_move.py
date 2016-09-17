@@ -167,7 +167,7 @@ def next_room_prob(self, column, row):
             for each_fringe in consisten_event:
                 consisten_event_value["({0},{1})".format(each_fringe[0], each_fringe[1])] = each_event["({0},{1})".
                     format(each_fringe[0], each_fringe[1])]
-            isConsistent = self.consistent(knownBS, consisten_event_value)
+            isConsistent = self.consistent(knownBS, each_event)
             # if isConsistent == 1:
             #     print "consisten = 1"
             temp = self.Pr_N_rooms[each_event] * isConsistent
@@ -206,7 +206,7 @@ def next_room_prob(self, column, row):
 
     #    3. If the probabilities of all the available rooms are not lower than the pre-specified probability
     #       threshold, return (0,0).
-    if lowest_prob[0] == 1:
+    if lowest_prob[0] >= self.max_pit_probability:
         return pre_room
     return lowest_risk_room
 
