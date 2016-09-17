@@ -75,14 +75,16 @@ def PitWumpus_probability_distribution(self, width, height):
     #Specify the values for each room
     room_values = {}
     for each in pitwumpus_variables:
-        room_values[each] = [T,F]
+        room_values[each] = [True,False]
         # print each, room_values[each],'\n'
 
     #Create an object of JointProDist
     Pr_N_rooms = JointProbDist(pitwumpus_variables, room_values)
 
     #Generate all possible events
-    events = all_events_jpd(pitwumpus_variables, Pr_N_rooms,{})
+    knownPW = self.observation_pits(self.visited_rooms)
+
+    events = all_events_jpd(Pr_N_rooms.variables, Pr_N_rooms, {})
 
     # #Assign probability for each event
     for each_event in events:
@@ -95,10 +97,9 @@ def PitWumpus_probability_distribution(self, width, height):
                 prob = prob * p_true
         Pr_N_rooms[each_event] = prob
 
-    for k,v in Pr_N_rooms.prob.items():
-        print k, "--", v
+    # for k,v in Pr_N_rooms.prob.items():
+    #     print k, "--", v
 
-    print Pr_N_rooms[(False, False, False, False, True, True, True, True, True)]
     # print Pr_N_rooms[0]
     # print Pr_N_rooms.show_approx()
 
@@ -136,6 +137,7 @@ def next_room_prob(self, column, row):
             if self.check_safety(each_s[0],each_s[1]): ## method check_safety() does a propositional-logic resolution reasoning to
                                                         ## determine whether moving to position each_s is safe or not
                 new_safe_room = each_s ## if it is safe, return this room, otherwise return (0,0)
+                return new_safe_room
             else:
                 query_rooms.add(each_s)
 
@@ -143,19 +145,36 @@ def next_room_prob(self, column, row):
     #       a pit/wumpus is lower than a pre-specified probability threshold, then return the location of
     #       that room.
 
-    print "No rooms safe, Need to determine lowest risk room"
-
-    knownPW = self.observation_pits(self.visited_rooms) #clone a new array of visited rooms
+    knownPW = self.observation_pits(self.visited_rooms)
     knownBS = self.observation_breeze_stench(self.visited_rooms)
 
-    for event, prob in self.Pr_N_rooms.prob.iteritems():
-        print event,"--",prob
-        if (event.viewitems() >= knownPW) == FALSE:
-            print "False"
-        else:
-            print "True"
+    lowest_prob = 1
+    lowest_risk_room = None
+    for each_query_room in query_rooms:
+        query_prob = 0
+        all_possible_events = all_events_jpd(self.Pr_N_rooms.variables, self.Pr_N_rooms, {})
+        for each_event in all_possible_events:
+            filter = each_event.viewitems() >= knownPW.viewitems()
+            filter &= each_event["({0},{1})".format(each_query_room[0], each_query_room[1])] == False
+            if filter == False:
+                continue
 
+            consisten_event = set(query_rooms)
+            consisten_event_value = {}
+            for each_fringe in consisten_event:
+                consisten_event_value["({0},{1})".format(each_fringe[0], each_fringe[1])] = each_event["({0},{1})".format(each_fringe[0], each_fringe[1])]
+            isConsistent = self.consistent(knownBS, consisten_event_value)
+            # if isConsistent == 1:
+            #     print "consisten = 1"
+            temp = self.Pr_N_rooms[each_event] * isConsistent
+            query_prob += temp
 
+        query_prob = 1 - query_prob #calculate the probability of pit/wumpus
+        print each_query_room, "--", query_prob
+        if query_prob <= lowest_prob:
+            lowest_prob = query_prob
+            lowest_risk_room = each_query_room
+    print "Lowest prob room info: ", lowest_risk_room, "--", lowest_prob
     # min_prob_room = self.max_pit_probability
     # row = 0
     # col = 1
@@ -168,6 +187,8 @@ def next_room_prob(self, column, row):
 
     #    3. If the probabilities of all the available rooms are not lower than the pre-specified probability
     #       threshold, return (0,0).
-    return pre_room
+    if lowest_prob == 1:
+        return pre_room
+    return lowest_risk_room
 
     tkMessageBox.showinfo("Not yet complete", "You need to develop the function next_room_prob.")
