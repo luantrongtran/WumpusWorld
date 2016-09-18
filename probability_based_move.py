@@ -80,10 +80,11 @@ def PitWumpus_probability_distribution(self, width, height):
     Pr_N_rooms = JointProbDist(pitwumpus_variables, room_values)
 
     #Generate all possible events
-    self.all_possible_events = all_events_jpd(Pr_N_rooms.variables, Pr_N_rooms, {})
+    events = all_events_jpd(Pr_N_rooms.variables, Pr_N_rooms, {})
+    knownPW = self.observation_pits(self.visited_rooms)
 
     # #Assign probability for each event
-    for each_event in self.all_possible_events:
+    for each_event in events:
         prob = 1 # initial value of the probability
         # if the value of a variable is false, multiply by p_false which is 1 - 0.2, otherwise multiply by p_true which is 0.2
         for (var, val) in each_event.items(): # for each (variable, value) pair in the dictionary
@@ -146,13 +147,13 @@ def next_room_prob(self, column, row):
         each_query_room_prob = (0,0) #(True,False)
 
         #recreate all events to calculate the joint probability distribution of query room, unknown, and known_PW
-        self.all_possible_events = all_events_jpd(self.Pr_N_rooms.variables, self.Pr_N_rooms, {})
+        all_possible_events = all_events_jpd(self.Pr_N_rooms.variables, self.Pr_N_rooms, {})
 
         pro_PW = 0 #probability of having pit/wumpus in each_query_room
         pro_not_PW = 0 #probability of not having pit/wumpus
 
         #filtering the events based on known_PW
-        for each_event in self.all_possible_events:
+        for each_event in all_possible_events:
             filter = each_event.viewitems() >= knownPW.viewitems()
             if filter == False:
                 continue
