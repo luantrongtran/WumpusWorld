@@ -169,7 +169,7 @@ def next_room_prob(self, column, row):
                     format(each_fringe[0], each_fringe[1])]
             isConsistent = self.consistent(knownBS, each_event)
             # if isConsistent == 1:
-            #     print "consisten = 1"
+            #     print "consistent = 1"
             temp = self.Pr_N_rooms[each_event] * isConsistent
 
             if each_event["({0},{1})".format(each_query_room[0], each_query_room[1])] == True:
