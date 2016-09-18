@@ -10,8 +10,10 @@
 #  explained in QUT's Manual of Policies and Procedures, Section C/5.3
 #  "Academic Integrity" and Section E/2.1 "Student Code of Conduct".
 #
-#    Student no: n8635307
-#    Student name: Ba Hoang An Nguyen
+#    Student 1 no: n8635307
+#    Student 1 name: Ba Hoang An Nguyen
+#    Student 2 no:
+#    Student 2 name: Chandler Power
 #
 #--------------------------------------------------------------------#
 
@@ -57,16 +59,13 @@ def PitWumpus_probability_distribution(self, width, height):
     #testing probability threshold (default == 0)
     T, F = True, False
 
-    p_true = 0.2 # having wumpus or pit
+    p_true = 0.2 # having pit/wumpus
     p_false = 1 - 0.2 # not having
 
     #Generate N rooms
     N = width * height
 
     pitwumpus_variables = []
-
-    # for i in range(1,N+1):
-    #     pitwumpus_variables = pitwumpus_variables + ['R'+ str(i)]
 
     for i in range(1, width+1):
         for j in range(1, height+1):
@@ -76,35 +75,26 @@ def PitWumpus_probability_distribution(self, width, height):
     room_values = {}
     for each in pitwumpus_variables:
         room_values[each] = [True,False]
-        # print each, room_values[each],'\n'
 
     #Create an object of JointProDist
     Pr_N_rooms = JointProbDist(pitwumpus_variables, room_values)
 
     #Generate all possible events
-    knownPW = self.observation_pits(self.visited_rooms)
-
     events = all_events_jpd(Pr_N_rooms.variables, Pr_N_rooms, {})
+    knownPW = self.observation_pits(self.visited_rooms)
 
     # #Assign probability for each event
     for each_event in events:
-        print each_event
-        prob = 1
-        for (var, val) in each_event.items():
+        prob = 1 # initial value of the probability
+        # if the value of a variable is false, multiply by p_false which is 1 - 0.2, otherwise multiply by p_true which is 0.2
+        for (var, val) in each_event.items(): # for each (variable, value) pair in the dictionary
             if val == F:
                 prob = prob * p_false
             else:
                 prob = prob * p_true
-        Pr_N_rooms[each_event] = prob
+        Pr_N_rooms[each_event] = prob # assign probability to this event
 
-    # for k,v in Pr_N_rooms.prob.items():
-    #     print k, "--", v
-
-    # print Pr_N_rooms[0]
-    # print Pr_N_rooms.show_approx()
-
-
-    return Pr_N_rooms
+    return Pr_N_rooms # return the pit/wumpus configuration
 #---------------------------------------------------------------------------------------------------
     #
     #  For the function next_room_prob() below, the parameters, column and row, are the robot's
@@ -124,22 +114,22 @@ def PitWumpus_probability_distribution(self, width, height):
 def next_room_prob(self, column, row):
     #    1. Firstly, you may like to call the function check_safety() of class Robot to find a
     #       safe room. If there is a safe room, return the location (column,row) of the safe room.
-    pre_room = (0,0)
-    query_rooms = set()
-    # Get surrounding rooms of the position (column,row), which are potential rooms to explore
 
+    pre_room = (0,0) #previous visited room
+    query_rooms = set() #adjacent rooms to the agent current location
+
+    # Get surrounding rooms of the position (column,row), which are potential rooms to explore
     #Checking surrounding rooms to see if there is any 100% safe room, if yes return the room.
     new_safe_room = None
 
     surroundings = self.cave.getsurrounding(column, row)
     for each_s in surroundings:
         if each_s not in self.visited_rooms:
-            if self.check_safety(each_s[0],each_s[1]): ## method check_safety() does a propositional-logic resolution reasoning to
-                                                        ## determine whether moving to position each_s is safe or not
-                new_safe_room = each_s ## if it is safe, return this room, otherwise return (0,0)
+            if self.check_safety(each_s[0],each_s[1]): #determine whether moving to position each_s is safe or not
+                new_safe_room = each_s ## if it is safe, go this room
                 return new_safe_room
             else:
-                query_rooms.add(each_s)
+                query_rooms.add(each_s) #otherwise add to the list of query room (unsafe rooms)
 
     #    2. If there is no safe room, this function needs to choose a room whose probability of containing
     #       a pit/wumpus is lower than a pre-specified probability threshold, then return the location of
@@ -148,66 +138,55 @@ def next_room_prob(self, column, row):
     knownPW = self.observation_pits(self.visited_rooms)
     knownBS = self.observation_breeze_stench(self.visited_rooms)
 
-    lowest_prob = (1,0)
-    lowest_risk_room = None
+    lowest_prob = (1,0) ## (True, False)
+                        ##pivotal variable to find the lowest probability
+    lowest_risk_room = None #room has lowest probability
+
+    #iterate through query rooms to calculate the room probability, and identify the room with the lowest probability
     for each_query_room in query_rooms:
-        query_prob = (0,0) #(T,F)
+        each_query_room_prob = (0,0) #(True,False)
+
+        #recreate all events to calculate the joint probability distribution of query room, unknown, and known_PW
         all_possible_events = all_events_jpd(self.Pr_N_rooms.variables, self.Pr_N_rooms, {})
 
-        false_events_sum = 0
-        true_event_sum = 0
+        pro_PW = 0 #probability of having pit/wumpus in each_query_room
+        pro_not_PW = 0 #probability of not having pit/wumpus
+
+        #filtering the events based on known_PW
         for each_event in all_possible_events:
             filter = each_event.viewitems() >= knownPW.viewitems()
-            # filter &= each_event["({0},{1})".format(each_query_room[0], each_query_room[1])] == False
             if filter == False:
                 continue
 
-            consisten_event = set(query_rooms)
-            consisten_event_value = {}
-            for each_fringe in consisten_event:
-                consisten_event_value["({0},{1})".format(each_fringe[0], each_fringe[1])] = each_event["({0},{1})".
-                    format(each_fringe[0], each_fringe[1])]
+            #checking the consistence of each event
             isConsistent = self.consistent(knownBS, each_event)
-            # if isConsistent == 1:
-            #     print "consistent = 1"
-            temp = self.Pr_N_rooms[each_event] * isConsistent
+            pro_each_event = self.Pr_N_rooms[each_event] * isConsistent
 
             if each_event["({0},{1})".format(each_query_room[0], each_query_room[1])] == True:
-                true_event_sum += temp
+                pro_PW += pro_each_event
             else:
-                false_events_sum += temp
+                pro_not_PW += pro_each_event
 
-        query_prob = (true_event_sum, false_events_sum)
+        each_query_room_prob = (pro_PW, pro_not_PW)
 
-        # query_prob = 1 - query_prob #calculate the probability of pit/wumpus
-        print "current room: ", each_query_room[0], each_query_room
-        print "before normalization: ", query_prob[0], ", ", query_prob[1]
+        # print "current room: ", each_query_room[0], each_query_room
+        # print "before normalization: ", each_query_room_prob[0], ", ", each_query_room_prob[1]
 
-        normalization_number = 1 / (query_prob[0] + query_prob[1])
-        normalized_true_event_prob = normalization_number * query_prob[0]
-        normalized_false_event_prob = normalization_number * query_prob[1]
-        query_prob = (normalized_true_event_prob, normalized_false_event_prob)
+        #normaliza each_query_room probability
+        normalization_number = 1 / (each_query_room_prob[0] + each_query_room_prob[1])
+        normalized_true_event_prob = normalization_number * each_query_room_prob[0]
+        normalized_false_event_prob = normalization_number * each_query_room_prob[1]
+        each_query_room_prob = (normalized_true_event_prob, normalized_false_event_prob)
 
-        print each_query_room, "--", query_prob
-        if query_prob[0] <= lowest_prob[0]:
-            lowest_prob = query_prob
+        #identify the room with lowest probability
+        ## print each_query_room, "--", each_query_room_prob
+        if each_query_room_prob[0] <= lowest_prob[0]:
+            lowest_prob = each_query_room_prob
             lowest_risk_room = each_query_room
-
-    print "Lowest prob room info: ", lowest_risk_room, "--", lowest_prob
-    # min_prob_room = self.max_pit_probability
-    # row = 0
-    # col = 1
-    #
-    # for each_s in surroundings:
-    #     print " "
-    #     if min_prob_room > enumerate_joint_ask(each_s, {}, PitWumpus_probability_distribution()):
-    #         min_prob_room = enumerate_joint_ask(each_s, {}, PitWumpus_probability_distribution())
-    #         new_room = (each_s[0],each_s[1])
 
     #    3. If the probabilities of all the available rooms are not lower than the pre-specified probability
     #       threshold, return (0,0).
     if lowest_prob[0] >= self.max_pit_probability:
-        return pre_room
-    return lowest_risk_room
-
-    tkMessageBox.showinfo("Not yet complete", "You need to develop the function next_room_prob.")
+        return pre_room #return to room (0,0)
+    else:
+        return lowest_risk_room

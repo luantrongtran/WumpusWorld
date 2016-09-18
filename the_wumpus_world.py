@@ -10,8 +10,10 @@
 #  explained in QUT's Manual of Policies and Procedures, Section C/5.3
 #  "Academic Integrity" and Section E/2.1 "Student Code of Conduct".
 #
-#    Student no: n8635307
-#    Student name: Ba Hoang An NGUYEN
+#    Student 1 no: n8635307
+#    Student 1 name: Ba Hoang An Nguyen
+#    Student 2 no:
+#    Student 2 name: Chandler Power
 #
 #--------------------------------------------------------------------#
 #
